@@ -1,0 +1,11 @@
+1. Зал: EVENT.ROOM_NUMBER_ID = CATALOGCONTENT.CONTENTID взять CATALOGCONTENT.NAME
+2. Номер дела: PROCEEDING.FULL_NUMBER
+3. Судья: PROCEEDING.JUDGE_SPEAKER_ID = GROUPCONTENT.GROUPCONTENTID взять GROUPCONTENT.USERNAME
+4. Участники процесса:
+4.1 Для гражданских и административных дел G33_PARTS.PARTS_TYPE_ID = CATALOGCONTENT.CONTENTID взять CATALOGCONTENT.NAME и G33_PARTS.NAME, но только те, у которых G33_PARTS.PARTS_TYPE_ID равен 50400100 (административный истец), 50400101 (административный ответчик), 50400000 (истец), 50400001 (ответчик). Истцов и ответчиков нужно сгруппировать
+4.2 Для уголовных дел U33_PARTS.NAME и U33_PARTS.MAIN_LAW_ARTICLE
+5. Результат рассмотрения: 
+5.1 Для гражданских и административных дел G33_PROCEEDING.SATISFIED_VERDICT_I_ID = CATALOGCONTENT.CONTENTID взять CATALOGCONTENT.NAME
+5.2 Для уголовных дел U33_PROCEEDING.VERDICT_BY_PROTEST = CATALOGCONTENT.CONTENTID взять CATALOGCONTENT.NAME
+
+гражданские и административные дела отличаются по строке PROCEEDING.CASE_TYPE_ID - гражданские 910760002, административные 910760004

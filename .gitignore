@@ -1,0 +1,8 @@
+bin/
+obj/
+logs/
+*.user
+.vs/
+tablo.config.json
+publish/
+health.json

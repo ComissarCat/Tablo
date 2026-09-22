@@ -1,0 +1,38 @@
+# systemd --user unit для табло на Linux.
+#
+# Установка (под учёткой, которая автологинится в зале, с обычным рабочим
+# столом X11/Wayland):
+#   mkdir -p ~/.config/systemd/user
+#   cp tablo-client.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now tablo-client.service
+#
+# Restart=always + RestartSec — это и есть watchdog: если процесс упадёт
+# (например, необработанное исключение), systemd поднимет его заново без
+# участия оператора.
+#
+# Если у пользователя не включён linger (systemctl --user работает только
+# при активной сессии), для автозапуска ДО логина настройте:
+#   sudo loginctl enable-linger <username>
+# Но раз табло рисуется на обычном рабочем столе, обычно проще положить
+# автозапуск в графическую сессию через tablo-client.desktop (см. рядом) —
+# тогда сервис стартует вместе с логином пользователя в зале.
+
+[Unit]
+Description=Tablo — табло судебных заседаний
+After=graphical-session.target network-online.target
+Wants=network-online.target
+# Если процесс не может подняться (например, битый исполняемый файл) —
+# не долбить лог бесконечно быстрыми рестартами.
+StartLimitIntervalSec=60
+StartLimitBurst=10
+
+[Service]
+Type=simple
+ExecStart=%h/tablo-client/Tablo.Client
+WorkingDirectory=%h/tablo-client
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target

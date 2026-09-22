@@ -1,0 +1,9 @@
+{
+  "ApiBaseUrl": "http://tablo-server:5000",
+  "HallName": null,
+  "ShowCivil": true,
+  "ShowAdministrative": true,
+  "ShowCriminal": true,
+  "UiScale": 1.0,
+  "PollIntervalSeconds": 20
+}

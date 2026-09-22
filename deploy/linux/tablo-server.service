@@ -1,0 +1,28 @@
+# systemd unit для Tablo.Server (центральный сервис, опрашивает Firebird и
+# раздаёт данные табло по REST). Разворачивается один раз в сети, а не на
+# каждом зале. Program.cs уже вызывает builder.Host.UseSystemd(), поэтому
+# сервис корректно уведомляет systemd о готовности/остановке.
+#
+# Установка (от root, на сервере рядом с БД/в той же сети):
+#   sudo cp tablo-server.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now tablo-server.service
+
+[Unit]
+Description=Tablo.Server — сервис данных для табло судебных заседаний
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=10
+
+[Service]
+Type=notify
+ExecStart=/opt/tablo-server/Tablo.Server
+WorkingDirectory=/opt/tablo-server
+Restart=always
+RestartSec=5
+User=tablo
+Environment=DOTNET_ENVIRONMENT=Production
+
+[Install]
+WantedBy=multi-user.target

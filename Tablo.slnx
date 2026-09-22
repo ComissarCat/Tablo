@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Tablo.Client/Tablo.Client.csproj" />
+    <Project Path="src/Tablo.Server/Tablo.Server.csproj" />
+    <Project Path="src/Tablo.Shared/Tablo.Shared.csproj" />
+  </Folder>
+</Solution>

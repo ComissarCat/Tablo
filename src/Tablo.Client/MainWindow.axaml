@@ -1,0 +1,40 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="720"
+        x:Class="Tablo.Client.MainWindow"
+        Title="Табло судебных заседаний"
+        Background="#0B0F14"
+        WindowStartupLocation="CenterScreen">
+    <DockPanel>
+        <Border DockPanel.Dock="Top" Background="#151B22" Padding="24,20">
+            <TextBlock x:Name="TitleText"
+                       Foreground="White"
+                       FontSize="32"
+                       FontWeight="Bold"
+                       TextWrapping="Wrap"
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center" />
+        </Border>
+
+        <Border DockPanel.Dock="Bottom" Background="#12161C" Padding="16,8">
+            <TextBlock x:Name="StatusText"
+                       Foreground="#7A8896"
+                       FontSize="16"
+                       Text="Загрузка..." />
+        </Border>
+
+        <ScrollViewer x:Name="ContentScroll"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto">
+            <StackPanel x:Name="ContentPanel"
+                        Margin="32"
+                        RenderTransformOrigin="0,0">
+                <StackPanel.RenderTransform>
+                    <ScaleTransform ScaleX="1" ScaleY="1" />
+                </StackPanel.RenderTransform>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

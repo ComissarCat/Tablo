@@ -1,0 +1,19 @@
+# Альтернатива systemd --user unit'у (tablo-client.service): автозапуск
+# через графическую сессию (XDG autostart). Проще, но не рестартует процесс
+# при падении — если нужен watchdog, используйте systemd-вариант.
+#
+# Установка (замените /home/tablo на реальный домашний каталог
+# автологин-пользователя — .desktop не поддерживает подстановку %h):
+#   mkdir -p ~/.config/autostart
+#   cp tablo-client.desktop ~/.config/autostart/
+#   sed -i 's#/home/tablo#'"$HOME"'#' ~/.config/autostart/tablo-client.desktop
+
+[Desktop Entry]
+Type=Application
+Name=Tablo Client
+Comment=Табло судебных заседаний
+Exec=/home/tablo/tablo-client/Tablo.Client
+Path=/home/tablo/tablo-client
+X-GNOME-Autostart-enabled=true
+NoDisplay=false
+Terminal=false
