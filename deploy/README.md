@@ -162,20 +162,28 @@ Esc по-прежнему закрывает табло штатно — цик�
 Если увидите ошибки вида «New-ScheduledTaskAction не распознано» —
 значит это как раз старая Windows, используйте способ выше.
 
-Linux — на выбор:
-- `systemd --user` (есть автоперезапуск при падении, `Restart=always`):
-  ```bash
-  mkdir -p ~/.config/systemd/user
-  cp deploy/linux/tablo-client.service ~/.config/systemd/user/
-  systemctl --user daemon-reload
-  systemctl --user enable --now tablo-client.service
-  ```
-- XDG autostart (проще, без автоперезапуска при падении):
-  ```bash
-  mkdir -p ~/.config/autostart
-  cp deploy/linux/tablo-client.desktop ~/.config/autostart/
-  sed -i 's#/home/tablo#'"$HOME"'#' ~/.config/autostart/tablo-client.desktop
-  ```
+**Linux — рекомендуемый способ:** XDG-автозапуск графической сессии +
+shell-цикл перезапуска (`run-client-loop.sh`, аналог bat-цикла для
+Windows). `publish.ps1` уже кладёт оба скрипта в
+`publish/client-linux-x64/`, поэтому после копирования папки на машину
+табло достаточно (под учёткой, что автологинится в зале, без sudo):
+```bash
+sh ~/tablo-client/install-client-autostart.sh
+```
+Скрипт сам выставит права на исполнение `Tablo.Client` (они теряются,
+когда публикация собрана на Windows и скопирована флешкой/по сети) и
+создаст `~/.config/autostart/tablo-client.desktop`. Esc закрывает табло
+штатно, падение — перезапуск через 3 секунды. Отключить автозапуск —
+удалить этот `.desktop`.
+
+Если нужно просто запустить вручную для проверки — права тоже нужны:
+`chmod +x ~/tablo-client/Tablo.Client`.
+
+Альтернатива — `systemd --user` (`deploy/linux/tablo-client.service`,
+инструкция внутри файла). Работает **только** в GNOME/KDE Plasma — там, где
+при входе активируется `graphical-session.target` и `DISPLAY` передаётся в
+systemd. В других окружениях (XFCE, MATE, Fly и т.п.) клиент падает с
+`XOpenDisplay failed` в логе — используйте способ выше.
 
 ## 3. Обновление уже развёрнутых машин
 

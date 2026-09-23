@@ -34,6 +34,13 @@ foreach ($rid in $Runtimes) {
         if ($LASTEXITCODE -ne 0) {
             throw "Публикация $name/$rid завершилась с ошибкой"
         }
+
+        # Скрипты автозапуска кладём прямо в публикацию клиента для Linux —
+        # на машину табло копируется одна папка, и install-client-
+        # autostart.sh запускается из неё без аргументов.
+        if ($name -eq "client" -and $rid -like "linux-*") {
+            Copy-Item (Join-Path $root "deploy/linux/*.sh") $outDir -Force
+        }
     }
 }
 

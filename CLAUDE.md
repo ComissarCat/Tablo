@@ -38,8 +38,11 @@ deploy/
                    register-task.ps1 (клиент, через Планировщик заданий —
                    только Windows 8/Server 2012+), register-server-
                    service.ps1 (сервер как служба Windows)
-  linux/           tablo-client.service / tablo-client.desktop (клиент),
-                   tablo-server.service (сервер)
+  linux/           install-client-autostart.sh + run-client-loop.sh
+                   (клиент, XDG-автозапуск — основной способ; publish.ps1
+                   кладёт их в publish/client-linux-x64/),
+                   tablo-client.service (клиент, systemd --user — только
+                   GNOME/KDE), tablo-server.service (сервер)
 ```
 
 ## Как это работает
@@ -94,8 +97,18 @@ deploy/
   и паузы сейчас захардкожены в `MainWindow.axaml.cs`
   (`ScrollSpeedPxPerSecond`, `ScrollPauseSeconds`), в конфиг не вынесены.
 - Автозапуск и перезапуск при падении — задача внешнего watchdog, не
-  самого приложения — см. `deploy/README.md`. На Linux — systemd
-  `Restart=always`. На Windows — **два варианта**: папка "Автозагрузка" +
+  самого приложения — см. `deploy/README.md`. На Linux — основной способ
+  XDG-автозапуск (`~/.config/autostart`) + `run-client-loop.sh` (та же
+  логика кодов выхода, что у bat) — проверено на реальной машине, работает.
+  Изначально основным был
+  `systemd --user` сервис, но на реальной машине он падал с
+  `XOpenDisplay failed`: user-менеджер systemd стартует вне графической
+  сессии, без `DISPLAY`/`XAUTHORITY`. Он оставлен как альтернатива,
+  привязан к `graphical-session.target`, но эту цель активируют только
+  GNOME/KDE. Ещё грабли: публикация собирается на Windows, при
+  копировании теряется бит исполнения — `install-client-autostart.sh`
+  делает `chmod +x`; `.sh` обязаны быть с LF (`.gitattributes`), иначе
+  `/bin/sh` их не запустит. На Windows — **два варианта**: папка "Автозагрузка" +
   `run-client-loop.bat` (watchdog-цикл на чистом cmd, работает на любой
   версии Windows, в т.ч. 7/Server 2008 — это основной/рекомендуемый способ,
   `install-client-autostart.ps1`) или классический Планировщик заданий

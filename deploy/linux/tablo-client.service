@@ -1,27 +1,27 @@
-# systemd --user unit для табло на Linux.
+# systemd --user unit для табло на Linux — АЛЬТЕРНАТИВА основному способу
+# (install-client-autostart.sh, XDG-автозапуск). Работает только в
+# окружениях, которые при входе активируют graphical-session.target и
+# передают DISPLAY/XAUTHORITY в systemd --user (GNOME, KDE Plasma). В
+# остальных (XFCE, MATE, Fly и т.п.) сервис либо не стартует, либо падает с
+# "XOpenDisplay failed" — там используйте install-client-autostart.sh.
 #
-# Установка (под учёткой, которая автологинится в зале, с обычным рабочим
-# столом X11/Wayland):
+# Установка (под учёткой, которая автологинится в зале):
+#   chmod +x ~/tablo-client/Tablo.Client
 #   mkdir -p ~/.config/systemd/user
 #   cp tablo-client.service ~/.config/systemd/user/
 #   systemctl --user daemon-reload
-#   systemctl --user enable --now tablo-client.service
+#   systemctl --user enable tablo-client.service
+# и перелогиниться (сервис стартует вместе с графической сессией).
 #
-# Restart=always + RestartSec — это и есть watchdog: если процесс упадёт
-# (например, необработанное исключение), systemd поднимет его заново без
-# участия оператора.
-#
-# Если у пользователя не включён linger (systemctl --user работает только
-# при активной сессии), для автозапуска ДО логина настройте:
-#   sudo loginctl enable-linger <username>
-# Но раз табло рисуется на обычном рабочем столе, обычно проще положить
-# автозапуск в графическую сессию через tablo-client.desktop (см. рядом) —
-# тогда сервис стартует вместе с логином пользователя в зале.
+# Restart=on-failure — watchdog как у bat/sh-цикла: падение перезапускает,
+# штатный выход по Esc (код 0) — нет.
 
 [Unit]
 Description=Tablo — табло судебных заседаний
-After=graphical-session.target network-online.target
-Wants=network-online.target
+# Привязка к графической сессии: стартовать только после неё (иначе ещё нет
+# X-сервера — "XOpenDisplay failed") и останавливаться вместе с ней.
+PartOf=graphical-session.target
+After=graphical-session.target
 # Если процесс не может подняться (например, битый исполняемый файл) —
 # не долбить лог бесконечно быстрыми рестартами.
 StartLimitIntervalSec=60
@@ -31,8 +31,8 @@ StartLimitBurst=10
 Type=simple
 ExecStart=%h/tablo-client/Tablo.Client
 WorkingDirectory=%h/tablo-client
-Restart=always
+Restart=on-failure
 RestartSec=3
 
 [Install]
-WantedBy=default.target
+WantedBy=graphical-session.target

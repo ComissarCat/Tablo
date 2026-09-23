@@ -1,0 +1,2 @@
+# Shell-скрипты для Linux должны быть с LF — с CRLF /bin/sh их не запустит.
+*.sh text eol=lf
