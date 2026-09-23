@@ -84,6 +84,7 @@ public partial class MainWindow : Window
     {
         _timer?.Stop();
         _scrollTimer?.Stop();
+        _guardTimer?.Stop();
         _api?.Dispose();
     }
 
@@ -145,6 +146,112 @@ public partial class MainWindow : Window
     {
         WindowDecorations = Avalonia.Controls.WindowDecorations.None;
         WindowState = WindowState.FullScreen;
+        Topmost = true;
+        Activate();
+        MarkFullscreenForTaskbar();
+        StartForegroundGuard();
+
+        Activated += (_, _) => Log.Information("Окно табло стало активным");
+        Deactivated += (_, _) => Log.Information("Окно табло перестало быть активным");
+    }
+
+    private void MarkFullscreenForTaskbar()
+    {
+        var hwnd = TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
+        TaskbarFullscreen.Mark(hwnd);
+    }
+
+    // При автозапуске во время входа в систему окно открывается раньше, чем
+    // Explorer достроит панель задач: Windows не даёт окну стать активным
+    // (защита от кражи фокуса), а панель задач прячется перед полноэкранным
+    // окном только если оно активно — и появившись позже, ложится поверх.
+    // При ручном запуске этого нет. Поэтому первые минуты после старта
+    // периодически заново поднимаем окно наверх; дальше не трогаем, чтобы не
+    // мешать обслуживанию на месте.
+    private static readonly TimeSpan ForegroundGuardInterval = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan ForegroundGuardDuration = TimeSpan.FromMinutes(2);
+
+    private DispatcherTimer? _guardTimer;
+    private string? _lastLoggedGeometry;
+
+    private void StartForegroundGuard()
+    {
+        var stopForegroundAt = DateTime.UtcNow + ForegroundGuardDuration;
+        _guardTimer = new DispatcherTimer { Interval = ForegroundGuardInterval };
+        _guardTimer.Tick += (_, _) =>
+        {
+            try
+            {
+                // Геометрию проверяем всё время работы: разрешение/масштаб
+                // экрана могут смениться и после старта (монитор/ТВ включили
+                // позже ПК, догрузился драйвер видеокарты). Полноэкранное окно
+                // само не подстраивается и остаётся размером со «старый»
+                // экран — по краю вылезает рабочий стол и панель задач.
+                EnsureCoversScreen();
+
+                // Повторяем всё время работы: при входе в систему Explorer
+                // может быть ещё не готов принять пометку, а при его
+                // перезапуске пометка теряется. Вызов дешёвый и идемпотентный.
+                MarkFullscreenForTaskbar();
+
+                if (DateTime.UtcNow >= stopForegroundAt || IsActive) return;
+                // Переключение Topmost заново выставляет окно в самый верх
+                // z-порядка среди topmost-окон (выше панели задач), даже если
+                // Activate() Windows проигнорирует.
+                Topmost = false;
+                Topmost = true;
+                Activate();
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Не удалось поднять окно табло на передний план");
+            }
+        };
+        _guardTimer.Start();
+
+        Screens.Changed += (_, _) =>
+        {
+            Log.Information("Изменилась конфигурация экранов");
+            Dispatcher.UIThread.Post(EnsureCoversScreen);
+        };
+    }
+
+    /// <summary>
+    /// Если окно не совпадает с границами своего экрана — заново
+    /// разворачивает его на весь экран. Каждое новое расхождение пишется в
+    /// лог (с размерами окна и экрана) для диагностики на месте.
+    /// </summary>
+    private void EnsureCoversScreen()
+    {
+        var screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
+        if (screen is null) return;
+
+        var windowRect = new Avalonia.PixelRect(Position, Avalonia.PixelSize.FromSize(ClientSize, RenderScaling));
+        var screenRect = screen.Bounds;
+        const int tolerance = 2;
+        var covers = WindowState == WindowState.FullScreen
+                     && Math.Abs(windowRect.X - screenRect.X) <= tolerance
+                     && Math.Abs(windowRect.Y - screenRect.Y) <= tolerance
+                     && Math.Abs(windowRect.Width - screenRect.Width) <= tolerance
+                     && Math.Abs(windowRect.Height - screenRect.Height) <= tolerance;
+
+        var geometry = $"окно {windowRect} (state={WindowState}, scaling={RenderScaling}), " +
+                       $"экран {screenRect} (scaling={screen.Scaling}, workingArea={screen.WorkingArea})";
+        if (geometry != _lastLoggedGeometry)
+        {
+            _lastLoggedGeometry = geometry;
+            Log.Information(covers ? "Геометрия: {Geometry}" : "Окно не покрывает экран, разворачиваем заново: {Geometry}", geometry);
+        }
+
+        if (covers) return;
+
+        WindowState = WindowState.Normal;
+        Dispatcher.UIThread.Post(() =>
+        {
+            WindowDecorations = Avalonia.Controls.WindowDecorations.None;
+            WindowState = WindowState.FullScreen;
+            Topmost = true;
+        });
     }
 
     private async Task PollAsync()
