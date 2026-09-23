@@ -139,12 +139,28 @@ sudo systemctl enable --now tablo-server.service
 
 ### 2.4 (когда всё проверено) Автозапуск клиента
 
-Windows — задача в Планировщике при входе в систему + автоперезапуск при
-сбое (от администратора, на самой машине табло, под учёткой с автологином
-в зале):
+**Windows — рекомендуемый способ (работает на любой версии, включая
+Windows 7 / Server 2008):** папка "Автозагрузка" + bat-скрипт с циклом
+перезапуска вместо Планировщика заданий. Не требует администратора,
+не зависит от модуля `ScheduledTasks` (которого на старых Windows может не
+быть — командлеты `New-ScheduledTaskAction`/`-Trigger` появились только в
+PowerShell 3.0 / Windows 8 / Server 2012, на Windows 7 их обычно нет).
+Запускать под той учёткой, что автологинится в зале:
+```powershell
+.\deploy\windows\install-client-autostart.ps1 -ClientDir "C:\tablo-client"
+```
+Esc по-прежнему закрывает табло штатно — цикл видит код выхода 0 и не
+перезапускает; падает (необработанное исключение) — перезапускает через
+3 секунды. Чтобы отключить автозапуск — удалить ярлык
+`TabloClient.lnk` из `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup`.
+
+**Windows 8 / Server 2012 и новее — через Планировщик заданий**, если
+он предпочтительнее (от администратора):
 ```powershell
 .\deploy\windows\register-task.ps1 -ExePath "C:\tablo-client\Tablo.Client.exe"
 ```
+Если увидите ошибки вида «New-ScheduledTaskAction не распознано» —
+значит это как раз старая Windows, используйте способ выше.
 
 Linux — на выбор:
 - `systemd --user` (есть автоперезапуск при падении, `Restart=always`):

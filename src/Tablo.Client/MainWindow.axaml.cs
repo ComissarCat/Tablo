@@ -134,7 +134,7 @@ public partial class MainWindow : Window
     private void ApplyScale(double scale)
     {
         var safeScale = scale is > 0.1 and < 10 ? scale : 1.0;
-        if (ContentPanel.RenderTransform is ScaleTransform transform)
+        if (ScaleContainer.LayoutTransform is ScaleTransform transform)
         {
             transform.ScaleX = safeScale;
             transform.ScaleY = safeScale;
@@ -305,7 +305,8 @@ public partial class MainWindow : Window
             Text = string.Join("  ·  ", headerParts),
             Foreground = Brushes.White,
             FontSize = 22,
-            FontWeight = FontWeight.Bold
+            FontWeight = FontWeight.Bold,
+            TextWrapping = Avalonia.Media.TextWrapping.Wrap
         });
 
         if (!string.IsNullOrWhiteSpace(item.Judge))

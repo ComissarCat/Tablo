@@ -16,7 +16,7 @@ param(
     [string]$Configuration = "Release"
 )
 
-$root = Split-Path -Parent $PSScriptRoot
+$root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $projects = @{
     "server" = Join-Path $root "src/Tablo.Server"
     "client" = Join-Path $root "src/Tablo.Client"

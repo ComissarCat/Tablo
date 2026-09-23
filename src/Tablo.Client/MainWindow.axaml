@@ -8,16 +8,10 @@
         Background="#0B0F14"
         WindowStartupLocation="CenterScreen">
     <DockPanel>
-        <Border DockPanel.Dock="Top" Background="#151B22" Padding="24,20">
-            <TextBlock x:Name="TitleText"
-                       Foreground="White"
-                       FontSize="32"
-                       FontWeight="Bold"
-                       TextWrapping="Wrap"
-                       HorizontalAlignment="Center"
-                       TextAlignment="Center" />
-        </Border>
-
+        <!--
+            Статус-строку сознательно оставляем вне LayoutTransformControl —
+            её не масштабируем даже при увеличенном UiScale.
+        -->
         <Border DockPanel.Dock="Bottom" Background="#12161C" Padding="16,8">
             <TextBlock x:Name="StatusText"
                        Foreground="#7A8896"
@@ -25,16 +19,34 @@
                        Text="Загрузка..." />
         </Border>
 
-        <ScrollViewer x:Name="ContentScroll"
-                      HorizontalScrollBarVisibility="Disabled"
-                      VerticalScrollBarVisibility="Auto">
-            <StackPanel x:Name="ContentPanel"
-                        Margin="32"
-                        RenderTransformOrigin="0,0">
-                <StackPanel.RenderTransform>
-                    <ScaleTransform ScaleX="1" ScaleY="1" />
-                </StackPanel.RenderTransform>
-            </StackPanel>
-        </ScrollViewer>
+        <!--
+            LayoutTransformControl (не RenderTransform!) — масштаб учитывается
+            при раскладке, а не только при отрисовке, поэтому контент
+            переносится по словам в пределах экрана вместо того, чтобы
+            вылезать за правый край при UiScale > 1.
+        -->
+        <LayoutTransformControl x:Name="ScaleContainer">
+            <LayoutTransformControl.LayoutTransform>
+                <ScaleTransform ScaleX="1" ScaleY="1" />
+            </LayoutTransformControl.LayoutTransform>
+
+            <DockPanel>
+                <Border DockPanel.Dock="Top" Background="#151B22" Padding="24,20">
+                    <TextBlock x:Name="TitleText"
+                               Foreground="White"
+                               FontSize="32"
+                               FontWeight="Bold"
+                               TextWrapping="Wrap"
+                               HorizontalAlignment="Center"
+                               TextAlignment="Center" />
+                </Border>
+
+                <ScrollViewer x:Name="ContentScroll"
+                              HorizontalScrollBarVisibility="Disabled"
+                              VerticalScrollBarVisibility="Auto">
+                    <StackPanel x:Name="ContentPanel" Margin="32" />
+                </ScrollViewer>
+            </DockPanel>
+        </LayoutTransformControl>
     </DockPanel>
 </Window>
