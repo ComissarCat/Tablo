@@ -6,7 +6,10 @@
         x:Class="Tablo.Client.MainWindow"
         Title="Табло судебных заседаний"
         Background="#0B0F14"
+        Cursor="None"
         WindowStartupLocation="CenterScreen">
+    <!-- Cursor="None" — табло без взаимодействия мышью, курсор поверх
+         списка дел не нужен (см. также HideCursorNow в MainWindow.axaml.cs). -->
     <DockPanel>
         <!--
             Статус-строку сознательно оставляем вне LayoutTransformControl —

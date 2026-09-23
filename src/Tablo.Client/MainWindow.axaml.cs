@@ -149,10 +149,26 @@ public partial class MainWindow : Window
         Topmost = true;
         Activate();
         MarkFullscreenForTaskbar();
+        HideCursorNow();
         StartForegroundGuard();
 
         Activated += (_, _) => Log.Information("Окно табло стало активным");
         Deactivated += (_, _) => Log.Information("Окно табло перестало быть активным");
+    }
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern IntPtr SetCursor(IntPtr hCursor);
+
+    // Cursor="None" в разметке Windows применяет только по WM_SETCURSOR, то
+    // есть когда мышь сдвинется над окном. После автозапуска мышь никто не
+    // трогает, и стрелка так и висела бы посреди табло — поэтому убираем её
+    // сразу. На Linux (X11) курсор окна применяется без движения мыши.
+    private static void HideCursorNow()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            SetCursor(IntPtr.Zero);
+        }
     }
 
     private void MarkFullscreenForTaskbar()
