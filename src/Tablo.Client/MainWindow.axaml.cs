@@ -378,7 +378,7 @@ public partial class MainWindow : Window
     {
         foreach (var item in cases.OrderBy(c => c.EventTime ?? NoTimeSortKey).ThenBy(c => c.CaseNumber))
         {
-            ContentPanel.Children.Add(BuildCaseCard(item));
+            ContentPanel.Children.Add(BuildCaseCard(item, _config.ShowResult));
         }
     }
 
@@ -405,12 +405,12 @@ public partial class MainWindow : Window
                 // заголовке группы: если дел много и список длинный,
                 // заголовок зала уезжает вверх при автопрокрутке, и без
                 // этого непонятно, к какому залу относятся видимые карточки.
-                ContentPanel.Children.Add(BuildCaseCard(item, showHallName: true));
+                ContentPanel.Children.Add(BuildCaseCard(item, _config.ShowResult, showHallName: true));
             }
         }
     }
 
-    private static Border BuildCaseCard(CaseDisplayItem item, bool showHallName = false)
+    private static Border BuildCaseCard(CaseDisplayItem item, bool showResult, bool showHallName = false)
     {
         var body = new StackPanel { Spacing = 4 };
 
@@ -453,13 +453,16 @@ public partial class MainWindow : Window
             });
         }
 
-        body.Children.Add(new TextBlock
+        if (showResult)
         {
-            Text = $"Результат: {CaseFormatting.FormatResult(item.Result)}",
-            Foreground = Brush.Parse("#8FD19E"),
-            FontSize = 18,
-            Margin = new Avalonia.Thickness(0, 4, 0, 0)
-        });
+            body.Children.Add(new TextBlock
+            {
+                Text = $"Результат: {CaseFormatting.FormatResult(item.Result)}",
+                Foreground = Brush.Parse("#8FD19E"),
+                FontSize = 18,
+                Margin = new Avalonia.Thickness(0, 4, 0, 0)
+            });
+        }
 
         return new Border
         {

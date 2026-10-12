@@ -58,7 +58,9 @@ deploy/
   (без учёта регистра/пробелов по краям), null/пусто = все залы; актуальный
   список названий смотреть через `GET /api/halls` на сервере, флаги
   `ShowCivil/ShowAdministrative/ShowCriminal`, `UiScale`,
-  `PollIntervalSeconds`). Опрашивает `Tablo.Server` по таймеру. При сбое сети
+  `PollIntervalSeconds`, `ShowResult` — показывать ли строку «Результат»
+  на карточке дела, по умолчанию `false`; сервер отдаёт результат всегда,
+  это чисто настройка отображения в `BuildCaseCard`). Опрашивает `Tablo.Server` по таймеру. При сбое сети
   — не показывает диалогов, оставляет последние данные, в статус-строке внизу
   пишет время последнего обновления (оранжевым, если данные устарели).
   Масштаб — `LayoutTransformControl` (не `RenderTransform`!) вокруг
@@ -168,6 +170,16 @@ deploy/
 целиком упаковывается рядом с exe, отдельно ставить .NET на машине не нужно.
 Firebird-клиент тоже не требует установки `fbclient.dll` — это чистый
 управляемый провайдер, говорящий по сети напрямую (проверено).
+
+Публикация **single-file** (`PublishSingleFile` +
+`IncludeNativeLibrariesForSelfExtract` + `DebugType=embedded`, параметры
+заданы в `publish.ps1`, не в csproj): в папке один exe + конфиги. Нативные
+библиотеки Avalonia (Skia/HarfBuzz) при первом запуске распаковываются в
+`%TEMP%\.net` / `~/.net`. Код опирается на `AppContext.BaseDirectory`
+(корректен в single-file), `Assembly.Location` не использовать — в
+single-file он пустой. `publish.ps1` пересоздаёт папку публикации и
+вычищает мусор (нативные pdb SkiaSharp ~100 МБ, `web.config`,
+`*.staticwebassets.endpoints.json`).
 
 Собрать публикации для Windows и Linux (нужен интернет — но только на
 машине сборки, не на целевых): `deploy/publish.ps1` → кладёт результат в

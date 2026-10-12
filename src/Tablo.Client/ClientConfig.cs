@@ -24,4 +24,10 @@ public sealed class ClientConfig
     public double UiScale { get; set; } = 1.0;
 
     public int PollIntervalSeconds { get; set; } = 20;
+
+    /// <summary>
+    /// Показывать ли на карточке дела строку "Результат: ...". Сервер
+    /// отдаёт результат всегда, это чисто настройка отображения.
+    /// </summary>
+    public bool ShowResult { get; set; }
 }
